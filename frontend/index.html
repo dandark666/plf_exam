@@ -127,29 +127,6 @@
             text-align: center;
         }
 
-        .info {
-            background: white;
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-        }
-
-        .info h3 {
-            margin-bottom: 10px;
-            color: #333;
-        }
-
-        .info p {
-            margin-bottom: 8px;
-        }
-
-        code {
-            background: #f4f4f4;
-            padding: 2px 6px;
-            border-radius: 3px;
-            font-family: 'Courier New', monospace;
-        }
-
         .error-message {
             position: fixed;
             top: 20px;
@@ -235,15 +212,6 @@
                 <canvas id="classificationChart"></canvas>
             </div>
         </div>
-
-        <div class="info">
-            <h3>Explicación:</h3>
-            <p>La función sigmoidea <code>f(x) = 1 / (1 + e^(-k(x - x₀)))</code> se utiliza como frontera de decisión no lineal.</p>
-            <p>• <strong>Desplazamiento (x₀):</strong> Mueve la curva en el eje X</p>
-            <p>• <strong>Pendiente (k):</strong> Controla la inclinación de la curva</p>
-            <p>• <strong>Separabilidad No Lineal:</strong> Los datos que no pueden separarse con una línea recta pueden separarse usando transformaciones no lineales como la sigmoidea</p>
-            <p>Los puntos se clasifican como clase 1 (azul) si están arriba de la curva y clase 0 (rojo) si están abajo.</p>
-        </div>
     </div>
 
     <script>
@@ -258,7 +226,6 @@
             }
 
             initializeControls() {
-                // Configurar event listeners para los controles
                 document.getElementById('shift').addEventListener('input', (e) => {
                     document.getElementById('shift-value').textContent = e.target.value;
                 });
@@ -275,7 +242,6 @@
                     this.resetControls();
                 });
 
-                // Actualizar automáticamente al cambiar controles
                 document.getElementById('shift').addEventListener('change', () => this.updateChart());
                 document.getElementById('steepness').addEventListener('change', () => this.updateChart());
                 document.getElementById('x_min').addEventListener('change', () => this.updateChart());
@@ -293,7 +259,6 @@
             async loadDefaultData() {
                 this.showLoading();
                 try {
-                    // Simular datos si la API no está disponible
                     const simulatedData = this.generateSimulatedData(0, 1, -10, 10);
                     this.currentData = simulatedData;
                     this.createCharts(simulatedData);
@@ -311,7 +276,6 @@
                 const x_min = parseFloat(document.getElementById('x_min').value);
                 const x_max = parseFloat(document.getElementById('x_max').value);
 
-                // Validación básica
                 if (x_min >= x_max) {
                     this.showError('X Mínimo debe ser menor que X Máximo');
                     return;
@@ -319,7 +283,6 @@
 
                 this.showLoading();
                 try {
-                    // Simular respuesta de la API
                     setTimeout(() => {
                         const simulatedData = this.generateSimulatedData(shift, steepness, x_min, x_max);
                         this.currentData = simulatedData;
@@ -335,17 +298,14 @@
             }
 
             generateSimulatedData(shift, steepness, x_min, x_max) {
-                // Generar datos simulados para la función sigmoidea
                 const numPoints = 100;
                 const x_values = [];
                 const y_values = [];
                 
-                // Función sigmoidea
                 const sigmoid = (x, shift, steepness) => {
                     return 1 / (1 + Math.exp(-steepness * (x - shift)));
                 };
                 
-                // Generar puntos para la curva
                 for (let i = 0; i < numPoints; i++) {
                     const x = x_min + (x_max - x_min) * i / (numPoints - 1);
                     const y = sigmoid(x, shift, steepness);
@@ -353,7 +313,6 @@
                     y_values.push(y);
                 }
                 
-                // Generar puntos aleatorios para clasificación
                 const random_points = {
                     x: [],
                     y: [],
@@ -475,7 +434,6 @@
                     this.classificationChart.destroy();
                 }
                 
-                // Separar puntos por clase
                 const class0 = [];
                 const class1 = [];
                 
@@ -564,7 +522,6 @@
                 }
 
                 if (this.classificationChart) {
-                    // Actualizar datos de clasificación
                     const class0 = [];
                     const class1 = [];
                     
@@ -588,7 +545,6 @@
             }
 
             showError(message) {
-                // Remover error anterior si existe
                 this.hideError();
                 
                 const errorDiv = document.createElement('div');
@@ -609,23 +565,10 @@
             }
         }
 
-        // Inicializar la aplicación cuando el DOM esté listo
         document.addEventListener('DOMContentLoaded', () => {
             new SigmoidVisualizer();
-            
-            // Agregar información adicional sobre separabilidad no lineal
-            const infoSection = document.querySelector('.info');
-            const additionalInfo = document.createElement('div');
-            additionalInfo.innerHTML = `
-                <h3>¿Qué es la Separabilidad No Lineal?</h3>
-                <p>En machine learning, la separabilidad no lineal se refiere a la capacidad de separar clases de datos usando fronteras de decisión que no son líneas rectas.</p>
-                <p>La función sigmoidea es un ejemplo clásico de transformación no lineal que puede separar datos que no son linealmente separables en el espacio original.</p>
-                <p><strong>Ejemplo práctico:</strong> Datos que forman patrones circulares o curvas complejas pueden separarse aplicando transformaciones no lineales como la sigmoidea.</p>
-            `;
-            infoSection.appendChild(additionalInfo);
         });
 
-        // Función global para probar desde la consola
         window.sigmoidViz = null;
         document.addEventListener('DOMContentLoaded', () => {
             window.sigmoidViz = new SigmoidVisualizer();
