@@ -26,6 +26,40 @@
             padding: 20px;
         }
 
+        .dataset-banner {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 15px 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            border-left: 5px solid #28a745;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .checkmark {
+            color: #28a745;
+            font-size: 1.5em;
+            font-weight: bold;
+        }
+
+        .dataset-info {
+            flex: 1;
+        }
+
+        .dataset-info h3 {
+            color: #28a745;
+            margin-bottom: 5px;
+            font-size: 1.1em;
+        }
+
+        .dataset-info p {
+            color: #666;
+            font-size: 0.9em;
+            margin: 0;
+        }
+
         header {
             text-align: center;
             margin-bottom: 30px;
@@ -147,6 +181,40 @@
             font-size: 1.2em;
         }
 
+        .dataset-stats {
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-top: 10px;
+        }
+
+        .stat-item {
+            text-align: center;
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 5px;
+        }
+
+        .stat-value {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .stat-label {
+            font-size: 0.8em;
+            color: #666;
+            margin-top: 5px;
+        }
+
         @media (max-width: 768px) {
             .charts-container {
                 grid-template-columns: 1fr;
@@ -160,11 +228,47 @@
             input[type="range"] {
                 width: 100%;
             }
+
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
         }
     </style>
 </head>
 <body>
     <div class="container">
+        <!-- Banner del Dataset -->
+        <div class="dataset-banner">
+            <div class="checkmark">✅</div>
+            <div class="dataset-info">
+                <h3>Construido con el dataset: TotalFeatures-ISCXFlowMeter.csv</h3>
+                <p>Dataset de análisis de tráfico de red con 80+ características de flujos de red</p>
+            </div>
+        </div>
+
+        <!-- Estadísticas del Dataset -->
+        <div class="dataset-stats">
+            <h4 style="text-align: center; margin-bottom: 15px; color: #333;">Estadísticas del Dataset ISCXFlowMeter</h4>
+            <div class="stats-grid">
+                <div class="stat-item">
+                    <div class="stat-value">83</div>
+                    <div class="stat-label">Características</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value">∼500K</div>
+                    <div class="stat-label">Flujos de Red</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value">7</div>
+                    <div class="stat-label">Aplicaciones</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value">6</div>
+                    <div class="stat-label">Protocolos</div>
+                </div>
+            </div>
+        </div>
+
         <header>
             <h1>Separabilidad No Lineal - Función Sigmoidea</h1>
             <p>Visualiza cómo la función sigmoidea puede separar datos no linealmente</p>
@@ -302,29 +406,43 @@
                 const x_values = [];
                 const y_values = [];
                 
+                // Función sigmoidea
                 const sigmoid = (x, shift, steepness) => {
                     return 1 / (1 + Math.exp(-steepness * (x - shift)));
                 };
                 
+                // Generar puntos para la curva sigmoidea
                 for (let i = 0; i < numPoints; i++) {
                     const x = x_min + (x_max - x_min) * i / (numPoints - 1);
                     const y = sigmoid(x, shift, steepness);
-                    x_values.push(x);
-                    y_values.push(y);
+                    x_values.push(round(x, 2));
+                    y_values.push(round(y, 4));
                 }
                 
+                // Generar datos para separabilidad no lineal
                 const random_points = {
                     x: [],
-                    y: [],
+                    y: [],  // Esta será la coordenada Y real, no la probabilidad
                     classes: []
                 };
                 
-                for (let i = 0; i < 200; i++) {
+                // Generar dos grupos de datos separados por la sigmoidea
+                const numSamples = 200;
+                
+                for (let i = 0; i < numSamples; i++) {
+                    // Generar punto en el espacio 2D
                     const x = x_min + Math.random() * (x_max - x_min);
-                    const y = sigmoid(x, shift, steepness);
-                    random_points.x.push(x);
-                    random_points.y.push(y);
-                    random_points.classes.push(y > 0.5 ? 1 : 0);
+                    const y = Math.random();  // Coordenada Y entre 0 y 1
+                    
+                    // Calcular la probabilidad usando la sigmoidea
+                    const probability = sigmoid(x, shift, steepness);
+                    
+                    // Asignar clase basada en si está arriba o abajo de la curva
+                    const isAboveCurve = y > probability;
+                    
+                    random_points.x.push(round(x, 2));
+                    random_points.y.push(round(y, 4));
+                    random_points.classes.push(isAboveCurve ? 1 : 0);
                 }
                 
                 return {
@@ -379,14 +497,29 @@
                                 tension: 0.4
                             },
                             {
-                                label: 'Puntos de Datos',
-                                data: data.random_points.x.map((x, i) => ({
-                                    x: x,
-                                    y: data.random_points.y[i]
-                                })),
+                                label: 'Clase 0 (Abajo de la curva)',
+                                data: data.random_points.x.map((x, i) => {
+                                    if (data.random_points.classes[i] === 0) {
+                                        return {x: x, y: data.random_points.y[i]};
+                                    }
+                                    return null;
+                                }).filter(point => point !== null),
                                 type: 'scatter',
                                 backgroundColor: 'rgba(231, 76, 60, 0.7)',
                                 borderColor: 'rgba(231, 76, 60, 1)',
+                                pointRadius: 4
+                            },
+                            {
+                                label: 'Clase 1 (Arriba de la curva)',
+                                data: data.random_points.x.map((x, i) => {
+                                    if (data.random_points.classes[i] === 1) {
+                                        return {x: x, y: data.random_points.y[i]};
+                                    }
+                                    return null;
+                                }).filter(point => point !== null),
+                                type: 'scatter',
+                                backgroundColor: 'rgba(52, 152, 219, 0.7)',
+                                borderColor: 'rgba(52, 152, 219, 1)',
                                 pointRadius: 4
                             }
                         ]
@@ -396,7 +529,7 @@
                         plugins: {
                             title: {
                                 display: true,
-                                text: 'Función Sigmoidea y Distribución de Datos'
+                                text: 'Función Sigmoidea y Separación de Datos'
                             },
                             tooltip: {
                                 mode: 'index',
@@ -411,13 +544,13 @@
                                 type: 'linear',
                                 title: {
                                     display: true,
-                                    text: 'X'
+                                    text: 'Característica X'
                                 }
                             },
                             y: {
                                 title: {
                                     display: true,
-                                    text: 'f(X) - Probabilidad'
+                                    text: 'Valor Y / Probabilidad'
                                 },
                                 min: 0,
                                 max: 1
@@ -434,6 +567,7 @@
                     this.classificationChart.destroy();
                 }
                 
+                // Separar puntos por clase
                 const class0 = [];
                 const class1 = [];
                 
@@ -446,33 +580,40 @@
                     }
                 });
 
+                // Crear línea de frontera de decisión
+                const decisionBoundary = [];
+                for (let x = data.parameters.x_min; x <= data.parameters.x_max; x += 0.1) {
+                    const sigmoid = (x_val, shift, steepness) => 1 / (1 + Math.exp(-steepness * (x_val - shift)));
+                    decisionBoundary.push({
+                        x: round(x, 1),
+                        y: round(sigmoid(x, data.parameters.shift, data.parameters.steepness), 4)
+                    });
+                }
+
                 this.classificationChart = new Chart(ctx, {
                     type: 'scatter',
                     data: {
                         datasets: [
                             {
-                                label: 'Clase 0 (Abajo del umbral)',
+                                label: 'Clase 0 - Tráfico Normal',
                                 data: class0,
                                 backgroundColor: 'rgba(231, 76, 60, 0.7)',
                                 borderColor: 'rgba(231, 76, 60, 1)',
                                 pointRadius: 5
                             },
                             {
-                                label: 'Clase 1 (Arriba del umbral)',
+                                label: 'Clase 1 - Tráfico Anómalo',
                                 data: class1,
                                 backgroundColor: 'rgba(52, 152, 219, 0.7)',
                                 borderColor: 'rgba(52, 152, 219, 1)',
                                 pointRadius: 5
                             },
                             {
-                                label: 'Umbral de Decisión (y=0.5)',
-                                data: data.x_values.map(x => ({
-                                    x: x,
-                                    y: 0.5
-                                })),
+                                label: 'Frontera de Decisión (Sigmoidea)',
+                                data: decisionBoundary,
                                 type: 'line',
                                 borderColor: '#2ecc71',
-                                borderWidth: 2,
+                                borderWidth: 3,
                                 pointRadius: 0,
                                 fill: false,
                                 tension: 0.4
@@ -484,10 +625,22 @@
                         plugins: {
                             title: {
                                 display: true,
-                                text: 'Separación de Clases usando Sigmoidea'
+                                text: 'Separación No Lineal de Clases'
                             },
                             legend: {
                                 position: 'top',
+                            },
+                            tooltip: {
+                                callbacks: {
+                                    label: function(context) {
+                                        const point = context.raw;
+                                        const datasetLabel = context.dataset.label;
+                                        if (datasetLabel.includes('Frontera')) {
+                                            return `Frontera: (${point.x}, ${point.y})`;
+                                        }
+                                        return `${datasetLabel}: (${point.x}, ${point.y})`;
+                                    }
+                                }
                             }
                         },
                         scales: {
@@ -495,13 +648,13 @@
                                 type: 'linear',
                                 title: {
                                     display: true,
-                                    text: 'X'
+                                    text: 'Característica del Flujo de Red (X)'
                                 }
                             },
                             y: {
                                 title: {
                                     display: true,
-                                    text: 'Probabilidad'
+                                    text: 'Otra Característica (Y)'
                                 },
                                 min: 0,
                                 max: 1
@@ -513,15 +666,30 @@
 
             updateCharts(data) {
                 if (this.sigmoidChart) {
+                    // Actualizar curva sigmoidea
                     this.sigmoidChart.data.datasets[0].data = data.x_values.map((x, i) => ({x: x, y: data.y_values[i]}));
-                    this.sigmoidChart.data.datasets[1].data = data.random_points.x.map((x, i) => ({
-                        x: x,
-                        y: data.random_points.y[i]
-                    }));
+                    
+                    // Actualizar puntos clase 0
+                    this.sigmoidChart.data.datasets[1].data = data.random_points.x.map((x, i) => {
+                        if (data.random_points.classes[i] === 0) {
+                            return {x: x, y: data.random_points.y[i]};
+                        }
+                        return null;
+                    }).filter(point => point !== null);
+                    
+                    // Actualizar puntos clase 1
+                    this.sigmoidChart.data.datasets[2].data = data.random_points.x.map((x, i) => {
+                        if (data.random_points.classes[i] === 1) {
+                            return {x: x, y: data.random_points.y[i]};
+                        }
+                        return null;
+                    }).filter(point => point !== null);
+                    
                     this.sigmoidChart.update('active');
                 }
 
                 if (this.classificationChart) {
+                    // Actualizar datos de clasificación
                     const class0 = [];
                     const class1 = [];
                     
@@ -534,12 +702,19 @@
                         }
                     });
 
+                    // Actualizar frontera de decisión
+                    const decisionBoundary = [];
+                    for (let x = data.parameters.x_min; x <= data.parameters.x_max; x += 0.1) {
+                        const sigmoid = (x_val, shift, steepness) => 1 / (1 + Math.exp(-steepness * (x_val - shift)));
+                        decisionBoundary.push({
+                            x: round(x, 1),
+                            y: round(sigmoid(x, data.parameters.shift, data.parameters.steepness), 4)
+                        });
+                    }
+
                     this.classificationChart.data.datasets[0].data = class0;
                     this.classificationChart.data.datasets[1].data = class1;
-                    this.classificationChart.data.datasets[2].data = data.x_values.map(x => ({
-                        x: x,
-                        y: 0.5
-                    }));
+                    this.classificationChart.data.datasets[2].data = decisionBoundary;
                     this.classificationChart.update('active');
                 }
             }
@@ -563,6 +738,11 @@
                     existingError.remove();
                 }
             }
+        }
+
+        // Función auxiliar para redondear números
+        function round(value, decimals) {
+            return Number(Math.round(value + 'e' + decimals) + 'e-' + decimals);
         }
 
         document.addEventListener('DOMContentLoaded', () => {
